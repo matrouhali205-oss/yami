@@ -1,6 +1,11 @@
 -- Yami Application Supabase Schema
 -- Copy and paste this script into the Supabase SQL Editor
 
+-- 0. Create Public Storage Bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('yami-media', 'yami-media', true)
+ON CONFLICT (id) DO NOTHING;
+
 -- 1. Users Table
 CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,
