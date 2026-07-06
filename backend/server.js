@@ -10,6 +10,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// URL Normalization Middleware to handle reverse proxy prefix stripping (e.g. Vercel)
+app.use((req, res, next) => {
+  if (!req.url.startsWith('/api')) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 const { Client } = require('pg');
 
 app.get('/api/migrate', async (req, res) => {
