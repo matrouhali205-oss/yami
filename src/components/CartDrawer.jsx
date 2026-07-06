@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useCart } from '../CartContext';
+import { useAuth } from '../AuthContext';
 import './CartDrawer.css';
 
 export default function CartDrawer() {
   const { cartItems, removeFromCart, updateQty, clearCart, isCartOpen, setIsCartOpen, totalPrice } = useCart();
+  const { user, token } = useAuth();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderError, setOrderError] = useState('');
 
   if (!isCartOpen) return null;
 
@@ -14,14 +17,48 @@ export default function CartDrawer() {
   const grandTotal = totalPrice + deliveryFee + serviceFee;
   const primaryRestaurant = cartItems[0]?.restaurantName || 'the restaurant';
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    if (!user || !token) {
+      alert('Please sign in or register to place your order.');
+      setIsCartOpen(false);
+      // Switch view/page to profile or suggest signing in
+      return;
+    }
+
     setIsPlacingOrder(true);
-    setTimeout(() => {
+    setOrderError('');
+
+    // Determine restaurant ID (database integer or fallback mock id)
+    const dbRestaurantId = typeof cartItems[0]?.restaurantId === 'number' ? cartItems[0].restaurantId : 1;
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          restaurant_id: dbRestaurantId,
+          total: grandTotal
+        })
+      });
+
+      if (res.ok) {
+        setIsPlacingOrder(false);
+        setOrderSuccess(true);
+        clearCart();
+      } else {
+        const errData = await res.json();
+        setOrderError(errData.error || 'Failed to place order.');
+        setIsPlacingOrder(false);
+      }
+    } catch (err) {
+      setOrderError('Connection error. Please try again.');
       setIsPlacingOrder(false);
-      setOrderSuccess(true);
-      clearCart();
-    }, 1500);
+    }
   };
+
 
   const handleClose = () => {
     setIsCartOpen(false);
@@ -128,6 +165,7 @@ export default function CartDrawer() {
 
                 {/* Checkout CTA */}
                 <div className="cart-checkout">
+                  {orderError && <div className="cart-form-error">{orderError}</div>}
                   <div className="delivery-estimate">
                     <span>🕐</span>
                     <span>~25 min estimated delivery</span>
@@ -136,6 +174,7 @@ export default function CartDrawer() {
                     Place Order · ${grandTotal.toFixed(2)}
                   </button>
                 </div>
+
               </>
             )}
           </>

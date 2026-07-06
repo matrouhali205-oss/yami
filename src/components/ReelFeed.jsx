@@ -13,6 +13,32 @@ export default function ReelFeed() {
   const startY = useRef(null);
   const { addToCart, totalItems, setIsCartOpen } = useCart();
 
+  useEffect(() => {
+    fetch('/api/reels')
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          setReelData(data.map(r => ({
+            id: r.id,
+            dish: r.item_name,
+            description: r.description,
+            price: r.item_price,
+            image: r.item_image || '/food_reel_1.png',
+            video: r.video_url,
+            restaurantName: r.restaurant_name,
+            likes: r.likes || 0,
+            comments: 12,
+            shares: 5,
+            tags: ['#Fresh', '#YamiLocal']
+          })));
+        }
+      })
+      .catch(err => {});
+  }, []);
+
   const handleLike = (id) => {
     setReelData(prev => prev.map(r =>
       r.id === id ? { ...r, liked: !r.liked, likes: r.liked ? r.likes - 1 : r.likes + 1 } : r
@@ -27,8 +53,9 @@ export default function ReelFeed() {
     ));
   };
 
-  const goNext = () => setCurrentIndex(i => Math.min(i + 1, reels.length - 1));
+  const goNext = () => setCurrentIndex(i => Math.min(i + 1, reelData.length - 1));
   const goPrev = () => setCurrentIndex(i => Math.max(i - 1, 0));
+
 
   const handleWheel = (e) => {
     if (e.deltaY > 30) goNext();
@@ -172,9 +199,10 @@ export default function ReelFeed() {
       {currentIndex > 0 && (
         <button className="reel-nav up" onClick={goPrev} id="reel-nav-up">↑</button>
       )}
-      {currentIndex < reels.length - 1 && (
+      {currentIndex < reelData.length - 1 && (
         <button className="reel-nav down" onClick={goNext} id="reel-nav-down">↓</button>
       )}
+
 
       {/* Order Modal */}
       {orderModalReel && (

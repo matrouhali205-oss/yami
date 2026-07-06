@@ -281,3 +281,15 @@
   padding: 14px;
 }
 
+.cart-form-error {
+  background: rgba(255, 45, 120, 0.08);
+  border: 1px solid rgba(255, 45, 120, 0.2);
+  color: #ff528c;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+

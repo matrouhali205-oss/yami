@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { reels } from '../data';
 import { useCart } from '../CartContext';
 import './RestaurantMenuModal.css';
@@ -31,8 +32,32 @@ const restaurantMenus = {
 
 export default function RestaurantMenuModal({ restaurant, onClose, onOrderReel }) {
   const { addToCart } = useCart();
+  const [dynamicMenu, setDynamicMenu] = useState([]);
+
+  useEffect(() => {
+    if (typeof restaurant.id === 'number') {
+      fetch(`/api/restaurants/${restaurant.id}/menu`)
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error();
+        })
+        .then(data => {
+          setDynamicMenu(data.map(item => ({
+            id: item.id,
+            dish: item.name,
+            price: item.price,
+            description: item.description,
+            image: item.image_url || '/food_reel_1.png',
+            tags: []
+          })));
+        })
+        .catch(err => {});
+    }
+  }, [restaurant.id]);
+
   const signatureReel = reels.find(r => r.restaurantId === restaurant.id);
-  const menuItems = restaurantMenus[restaurant.id] || [];
+  const menuItems = dynamicMenu.length > 0 ? dynamicMenu : (restaurantMenus[restaurant.id] || []);
+
 
   return (
     <div className="menu-modal-overlay" onClick={onClose}>

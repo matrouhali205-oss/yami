@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { restaurants, reels } from '../data';
 import { useCart } from '../CartContext';
 import RestaurantMenuModal from './RestaurantMenuModal';
@@ -11,9 +11,40 @@ export default function RestaurantsPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [orderReel, setOrderReel] = useState(null);
   const { addToCart } = useCart();
+  const [restaurantsList, setRestaurantsList] = useState(restaurants);
+
+  useEffect(() => {
+    fetch('/api/restaurants')
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          const dbRests = data.map(r => ({
+            id: r.id,
+            name: r.name,
+            cuisine: 'Partner Restaurant',
+            rating: 4.9,
+            reviewCount: 32,
+            deliveryTime: '20–35 min',
+            distance: '0.8 mi',
+            deliveryFee: 0,
+            avatar: '🧑‍🍳',
+            coverColor: 'linear-gradient(135deg, rgba(255,107,53,0.15) 0%, rgba(157,78,221,0.1) 100%)',
+            tags: ['Partner', 'Free Delivery'],
+            description: r.description,
+            image_url: r.image_url
+          }));
+          setRestaurantsList([...dbRests, ...restaurants]);
+        }
+      })
+      .catch(err => {});
+  }, []);
 
   // Handle filter matching
-  const filteredRestaurants = restaurants.filter(r => {
+  const filteredRestaurants = restaurantsList.filter(r => {
+
     // Search filter
     const matchesSearch = r.name.toLowerCase().includes(search.toLowerCase()) || 
                           r.cuisine.toLowerCase().includes(search.toLowerCase());

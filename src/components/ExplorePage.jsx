@@ -1,6 +1,6 @@
 import { reels, categories, formatNumber } from '../data';
 import { useCart } from '../CartContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OrderModal from './OrderModal';
 import './ExplorePage.css';
 
@@ -8,6 +8,30 @@ export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [orderReel, setOrderReel] = useState(null);
   const { addToCart } = useCart();
+  const [reelData, setReelData] = useState(reels);
+
+  useEffect(() => {
+    fetch('/api/reels')
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          setReelData(data.map(r => ({
+            id: r.id,
+            dish: r.item_name,
+            description: r.description,
+            price: r.item_price,
+            image: r.item_image || '/food_reel_1.png',
+            restaurantName: r.restaurant_name,
+            likes: r.likes || 0
+          })));
+        }
+      })
+      .catch(err => {});
+  }, []);
+
 
   return (
     <div className="explore-page">
@@ -47,7 +71,7 @@ export default function ExplorePage() {
 
       {/* Masonry-style grid */}
       <div className="explore-grid">
-        {reels.map((reel, i) => (
+        {reelData.map((reel, i) => (
           <div key={reel.id} className={`explore-card ${i % 3 === 0 ? 'tall' : ''}`} id={`explore-${reel.id}`}>
             <img src={reel.image} alt={reel.dish} className="explore-card-img" />
             <div className="explore-card-overlay">
@@ -72,6 +96,7 @@ export default function ExplorePage() {
           </div>
         ))}
       </div>
+
 
       {orderReel && (
         <OrderModal
