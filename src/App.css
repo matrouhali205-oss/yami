@@ -1,0 +1,30 @@
+/* App layout */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--bg-primary);
+  /* subtle shadow to show the phone-like layout */
+  box-shadow: 0 0 60px rgba(0,0,0,0.8);
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* On larger screens, show the app as a phone */
+@media (min-width: 520px) {
+  body { background: #05050a; }
+  .app {
+    min-height: 100dvh;
+    border-left: 1px solid rgba(255,255,255,0.05);
+    border-right: 1px solid rgba(255,255,255,0.05);
+  }
+}
